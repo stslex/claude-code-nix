@@ -16,19 +16,42 @@ Nix flake that packages [Claude Code](https://github.com/anthropics/claude-code)
 }
 ```
 
-### NixOS / home-manager via overlay
+### NixOS (via overlay)
 
 ```nix
-{ inputs, ... }:
+# configuration.nix or a NixOS module
+{ inputs, pkgs, lib, ... }:
 {
   nixpkgs.overlays = [ inputs.claude-code.overlays.default ];
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [ "claude-code" ];
 
-  # NixOS
   environment.systemPackages = [ pkgs.claude-code ];
+}
+```
 
-  # or home-manager
+### home-manager
+
+When using `home-manager.useGlobalPkgs = true`, you **cannot** set `nixpkgs.overlays` inside home-manager modules. Reference the package directly from the flake input instead:
+
+```nix
+# home-manager module
+{ inputs, ... }:
+{
+  home.packages = [ inputs.claude-code.packages.x86_64-linux.default ];
+}
+```
+
+If you are **not** using `useGlobalPkgs`, you can use the overlay approach:
+
+```nix
+# home-manager module (useGlobalPkgs = false)
+{ inputs, pkgs, lib, ... }:
+{
+  nixpkgs.overlays = [ inputs.claude-code.overlays.default ];
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) [ "claude-code" ];
+
   home.packages = [ pkgs.claude-code ];
 }
 ```

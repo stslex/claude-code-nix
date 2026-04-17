@@ -2,7 +2,7 @@
   lib,
   stdenv,
   fetchurl,
-  autoPatchelfHook,
+  makeWrapper,
 }:
 
 let
@@ -33,13 +33,24 @@ stdenv.mkDerivation {
   };
 
   dontUnpack = true;
+  # Disable all fixup phases that modify ELF binaries — Bun standalone
+  # executables embed JS bytecode after the ELF and locate it by offset
+  # from the end of the file. Any modification breaks the embedded payload.
+  dontStrip = true;
+  dontPatchELF = true;
 
-  nativeBuildInputs = lib.optionals stdenv.isLinux [ autoPatchelfHook ];
-  buildInputs = lib.optionals stdenv.isLinux [ stdenv.cc.cc.lib ];
+  nativeBuildInputs = lib.optionals stdenv.isLinux [ makeWrapper ];
 
   installPhase = ''
     runHook preInstall
-    install -Dm755 $src $out/bin/claude
+    install -Dm755 $src $out/libexec/claude
+    ${lib.optionalString stdenv.isLinux ''
+      makeWrapper $out/libexec/claude $out/bin/claude \
+        --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ stdenv.cc.cc.lib ]}"
+    ''}
+    ${lib.optionalString stdenv.isDarwin ''
+      ln -s $out/libexec/claude $out/bin/claude
+    ''}
     runHook postInstall
   '';
 
