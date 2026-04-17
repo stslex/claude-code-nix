@@ -53,7 +53,21 @@ Pin to a specific version:
 ./scripts/update.sh 2.1.92
 ```
 
-An automated GitHub Actions workflow for periodic updates will be added separately.
+## Auto-updates
+
+A GitHub Actions workflow runs daily at 03:00 UTC and automatically bumps the package when a new stable release is available. It builds the binary on `linux-x64` to verify hashes, then commits and pushes the version bump.
+
+Trigger manually:
+
+```bash
+# Update to latest stable
+gh workflow run update.yml
+
+# Pin to a specific version
+gh workflow run update.yml -f version=2.1.92
+```
+
+> **Note:** The workflow needs push access. Go to **Settings → Actions → General → Workflow permissions** and select **"Read and write permissions"**.
 
 ## Acknowledgements
 
