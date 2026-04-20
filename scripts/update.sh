@@ -8,7 +8,7 @@ VERSION_FILE="$(cd "$(dirname "$0")/../pkgs/claude-code" && pwd)/version.json"
 if [[ $# -ge 1 ]]; then
   NEW_VERSION="$1"
 else
-  NEW_VERSION=$(curl -fsSL "$REPO/stable" | tr -d '[:space:]')
+  NEW_VERSION=$(npm view @anthropic-ai/claude-code version 2>/dev/null)
 fi
 
 # Check current version
